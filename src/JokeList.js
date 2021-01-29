@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Joke from "./Joke";
 import "./JokeList.css";
+import useLocalStorage from "./hooks/localStorage";
 
 /** List of jokes. 
  * 
@@ -17,9 +18,8 @@ import "./JokeList.css";
 */
 
 function JokeList({ numJokesToGet = 5 }) {
-  const [jokes, setJokes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [jokes, setJokes] = useLocalStorage('jokes', []);
+  const [isLoading, setIsLoading] = useState(jokes.length === 0);
 
   /* retrieve jokes from API on mount and when isLoading or numJokesToGet
   changes */
@@ -45,14 +45,16 @@ function JokeList({ numJokesToGet = 5 }) {
             console.log("duplicate found!");
           }
         }
+        console.log('new jokes are: ', newJokes);
         setIsLoading(false);
+        // setJokes(newJokes);
         setJokes(newJokes);
       } catch (err) {
         console.error(err);
       }
     }
     if (isLoading) getJokes()
-  }, [isLoading, numJokesToGet]);
+  }, [isLoading, numJokesToGet, setJokes]);
 
   /* set to loading state to true which will trigger useEffect */
 
@@ -70,36 +72,35 @@ function JokeList({ numJokesToGet = 5 }) {
   }
 
   /* Either loading spinner or list of sorted jokes. */
-  // TODO: can just say jokes rather than spreading (can sort in place)
-  let sortedJokes = [...jokes].sort((a, b) => b.votes - a.votes);
   if (isLoading) {
     return (
       <div className="loading">
         <i className="fas fa-4x fa-spinner fa-spin" />
       </div>
     )
+  } else {
+    jokes.sort((a, b) => b.votes - a.votes);
+    return (
+      <div className="JokeList">
+        <button
+          className="JokeList-getmore"
+          onClick={generateNewJokes}
+        >
+          Get New Jokes
+          </button>
+  
+        {jokes.map(j => (
+          <Joke
+            text={j.joke}
+            key={j.id}
+            id={j.id}
+            votes={j.votes}
+            vote={vote}
+          />
+        ))}
+      </div>
+    );
   }
-
-  return (
-    <div className="JokeList">
-      <button
-        className="JokeList-getmore"
-        onClick={generateNewJokes}
-      >
-        Get New Jokes
-        </button>
-
-      {sortedJokes.map(j => (
-        <Joke
-          text={j.joke}
-          key={j.id}
-          id={j.id}
-          votes={j.votes}
-          vote={vote}
-        />
-      ))}
-    </div>
-  );
 }
 
 export default JokeList;
