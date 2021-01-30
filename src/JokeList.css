@@ -14,6 +14,14 @@
   color: white;
 }
 
+.JokeList-resetVotes {
+  margin: 1em 1em;
+  font-size: 150%;
+  border-radius: 0.5em;
+  background-color: green;
+  color: white;
+}
+
 .JokeList-getmore:disabled {
   background-color: #ccc;
   cursor: not-allowed;

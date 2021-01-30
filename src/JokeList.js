@@ -28,9 +28,9 @@ function JokeList({ numJokesToGet = 5 }) {
     async function getJokes() {
       try {
         // load jokes one at a time, adding not-yet-seen jokes
-        let newJokes = [];
+        let newJokes = jokes.filter(j => j.isLocked);
         let seenJokes = new Set();
-  
+
         while (newJokes.length < numJokesToGet) {
           let res = await axios.get("https://icanhazdadjoke.com", {
             headers: { Accept: "application/json" }
@@ -40,7 +40,7 @@ function JokeList({ numJokesToGet = 5 }) {
           // pushing each time). 
           if (!seenJokes.has(joke.id)) {
             seenJokes.add(joke.id);
-            newJokes.push({ ...joke, votes: 0 });
+            newJokes.push({ ...joke, votes: 0, isLocked: false });
           } else {
             console.log("duplicate found!");
           }
@@ -62,12 +62,27 @@ function JokeList({ numJokesToGet = 5 }) {
     setIsLoading(true);
   }
 
+  /* reset vote count on all jokes */
+
+  function resetVoteCount() {
+    setJokes(jokes => jokes.map(j => ({ ...j, votes: 0 })));
+  }
+
   /* change vote for this id by delta (+1 or -1) */
 
   function vote(id, delta) {
     setJokes(jks => (
       jks.map(j =>
         j.id === id ? { ...j, votes: j.votes + delta } : j)
+    ));
+  }
+
+  /* change isLocked for this id */
+
+  function lockJoke(id) {
+    setJokes(jks => (
+      jks.map(j =>
+        j.id === id ? { ...j, isLocked: !j.isLocked } : j)
     ));
   }
 
@@ -88,7 +103,13 @@ function JokeList({ numJokesToGet = 5 }) {
         >
           Get New Jokes
           </button>
-  
+        <button
+          className="JokeList-resetVotes"
+          onClick={resetVoteCount}
+        >
+          Reset Vote Counts
+          </button>
+
         {jokes.map(j => (
           <Joke
             text={j.joke}
@@ -96,6 +117,8 @@ function JokeList({ numJokesToGet = 5 }) {
             id={j.id}
             votes={j.votes}
             vote={vote}
+            lockJoke={lockJoke}
+            isLocked={j.isLocked}
           />
         ))}
       </div>

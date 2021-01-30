@@ -13,6 +13,7 @@ import JokeList from "./JokeList";
 */
 
 function App() {
+  // localStorage.clear()
   return (
     <div className="App">
       <JokeList />
